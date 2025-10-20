@@ -1,0 +1,67 @@
+
+# Modified for LED Workshop STEAM Workshop day 2023 at Charles R. Drew Charter School
+#
+# SPDX-FileCopyrightText: 2018 Kattni Rembor for Adafruit Industries
+# SPDX-License-Identifier: MIT
+
+"""Programming a Neopixel strip using CircuitPython"""
+import time
+import board
+from rainbowio import colorwheel
+import neopixel
+import analogio
+
+piezo = analogio.AnalogIn(board.GP28)
+
+def get_voltage(pin):
+       return (pin.value * 3.3) / 65535
+
+voltage = 0
+
+pixel_pin = board.GP26
+num_pixels = 10
+
+pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=.2, auto_write=False)
+
+RED = (255, 0, 0)
+YELLOW = (255, 150, 0)
+GREEN = (0, 255, 0)
+CYAN = (0, 255, 255)
+BLUE = (0, 0, 255)
+PURPLE = (180, 0, 255)
+
+while True:
+    old_voltage = voltage
+    voltage = get_voltage(piezo)
+    time.sleep(0.01)  # adjust sampling speed
+    print("nothing is sensed")
+    pixels.fill(RED)
+    pixels.show()
+    
+    
+    if old_voltage - voltage > .1:
+        print("hit detected")
+        print("Piezo Voltage:", voltage)
+        print("Old Voltage:", old_voltage)
+        print("RED")
+
+        pixels.fill(CYAN)
+        pixels.show()
+        time.sleep(.5)
+        pixels.fill(YELLOW)
+        pixels.show()
+        time.sleep(.5)
+        pixels.fill(CYAN)
+        pixels.show()
+        time.sleep(.5)
+        pixels.fill(YELLOW)
+        pixels.show()
+        time.sleep(.5)
+        
+        
+
+
+
+
+
+
