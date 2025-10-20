@@ -1,0 +1,129 @@
+
+# Modified for LED Workshop STEAM Workshop day 2023 at Charles R. Drew Charter School
+#
+# SPDX-FileCopyrightText: 2018 Kattni Rembor for Adafruit Industries
+# SPDX-License-Identifier: MIT
+
+"""Programming a Neopixel strip using CircuitPython"""
+import time
+import board
+from rainbowio import colorwheel
+import neopixel
+import analogio
+import digitalio         # digital input/output support
+
+SENSOR_PIN = board.GP16 # GPIO pin connected to the sensor's OUT signal
+'''Sensor is 3 Terminal Component with Black LED
+    Wiring:
+        Black on Sensor to GND on Pico
+        Red on Sensor to VSYS on Pico
+        White on Sensor to GPIO on Pico'''
+
+LED_PIN = board.GP15
+'''LED is 2 Terminal Component with Clear/White LED
+    Wiring:
+        Black on Sensor to GND on Pico
+        Red on Sensor to GPIO on Pico
+'''
+
+sensor = digitalio.DigitalInOut(SENSOR_PIN)     # create a DigitalInOut object for the sensor pin
+sensor.direction = digitalio.Direction.INPUT    # set the pin direction to input (we read from it)
+sensor.pull = digitalio.Pull.UP                 # enable internal pull-up; sensor pulls LOW when beam breaks
+
+LED = digitalio.DigitalInOut(LED_PIN)         # create a DigitalInOut object for the (infrared) LED
+LED.direction = digitalio.Direction.OUTPUT    # set LED pin as output so we can turn it on/off
+
+def debounce():
+    start_time = time.monotonic()
+    estimated_trigger_time = 10 #time in ms
+    current_time = time.monotonic()
+    print("start_time:", start_time, "current_time", current_time)
+    if current_time - start_time > estimated_trigger_time:
+        print("checking again")
+    # event counter for number of beam breaks detected
+
+
+piezo = analogio.AnalogIn(board.GP28)
+
+def get_voltage(pin):
+       return (pin.value * 3.3) / 65535
+
+voltage = 0
+
+pixel_pin = board.GP26
+num_pixels = 10
+
+pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=.2, auto_write=False)
+
+RED = (255, 0, 0)
+YELLOW = (255, 150, 0)
+GREEN = (0, 255, 0)
+CYAN = (0, 255, 255)
+BLUE = (0, 0, 255)
+PURPLE = (180, 0, 255)
+
+while True:
+    LED.value = True
+    print(sensor.value)
+    if sensor.value == False:
+        debounce()
+        pixels.fill(PURPLE)
+        pixels.show()
+        time.sleep(.25)
+        pixels.fill(BLUE)
+        pixels.show()
+        time.sleep(.25)
+        pixels.fill(PURPLE)
+        pixels.show()
+        time.sleep(.25)
+        pixels.fill(BLUE)
+        pixels.show()
+        time.sleep(.25)
+        pixels.fill(PURPLE)
+        pixels.show()
+        time.sleep(.25)
+        pixels.fill(BLUE)
+        pixels.show()
+        time.sleep(.25)
+        pixels.fill(PURPLE)
+        pixels.show()
+        time.sleep(.25)
+        pixels.fill(BLUE)
+        pixels.show()
+        time.sleep(.25)
+        
+    time.sleep(.01)
+    old_voltage = voltage
+    voltage = get_voltage(piezo)
+    time.sleep(0.01)  # adjust sampling speed
+    print("nothing is sensed")
+    pixels.fill(RED)
+    pixels.show()
+    
+    
+    if old_voltage - voltage > .1:
+        print("hit detected")
+        print("Piezo Voltage:", voltage)
+        print("Old Voltage:", old_voltage)
+        print("RED")
+
+        pixels.fill(CYAN)
+        pixels.show()
+        time.sleep(.5)
+        pixels.fill(YELLOW)
+        pixels.show()
+        time.sleep(.5)
+        pixels.fill(CYAN)
+        pixels.show()
+        time.sleep(.5)
+        pixels.fill(YELLOW)
+        pixels.show()
+        time.sleep(.5)
+        
+        
+
+
+
+
+
+
