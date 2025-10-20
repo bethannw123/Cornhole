@@ -1,0 +1,41 @@
+import time              # time utilities (sleep, timestamps)
+import board             # pin definitions for your board (e.g., board.GP15)
+import digitalio         # digital input/output support
+
+SENSOR_PIN = board.GP16 # GPIO pin connected to the sensor's OUT signal
+'''Sensor is 3 Terminal Component with Black LED
+    Wiring:
+        Black on Sensor to GND on Pico
+        Red on Sensor to VSYS on Pico
+        White on Sensor to GPIO on Pico'''
+
+LED_PIN = board.GP15
+'''LED is 2 Terminal Component with Clear/White LED
+    Wiring:
+        Black on Sensor to GND on Pico
+        Red on Sensor to GPIO on Pico
+'''
+
+sensor = digitalio.DigitalInOut(SENSOR_PIN)     # create a DigitalInOut object for the sensor pin
+sensor.direction = digitalio.Direction.INPUT    # set the pin direction to input (we read from it)
+sensor.pull = digitalio.Pull.UP                 # enable internal pull-up; sensor pulls LOW when beam breaks
+
+LED = digitalio.DigitalInOut(LED_PIN)         # create a DigitalInOut object for the (infrared) LED
+LED.direction = digitalio.Direction.OUTPUT    # set LED pin as output so we can turn it on/off
+
+def debounce():
+    start_time = time.monotonic()
+    estimated_trigger_time = 10 #time in ms
+    current_time = time.monotonic()
+    print("start_time:", start_time, "current_time", current_time)
+    if current_time - start_time > estimated_trigger_time:
+        print("checking again")
+    # event counter for number of beam breaks detected
+
+while True:
+    LED.value = True
+    print(sensor.value)
+    if sensor.value == False:
+        debounce()
+    time.sleep(.01)
+    
