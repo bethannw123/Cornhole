@@ -1,0 +1,188 @@
+
+# Modified for LED Workshop STEAM Workshop day 2023 at Charles R. Drew Charter School
+#
+# SPDX-FileCopyrightText: 2018 Kattni Rembor for Adafruit Industries
+# SPDX-License-Identifier: MIT
+
+"""Programming a Neopixel strip using CircuitPython"""
+import time
+import board
+from rainbowio import colorwheel
+import neopixel
+import analogio
+import digitalio         # digital input/output support
+import time
+import board
+import busio
+from lcd.lcd import LCD
+from lcd.i2c_pcf8574_interface import I2CPCF8574Interface
+
+SENSOR_PIN = board.GP16 # GPIO pin connected to the sensor's OUT signal
+'''Sensor is 3 Terminal Component with Black LED
+    Wiring:
+        Black on Sensor to GND on Pico
+        Red on Sensor to VSYS on Pico
+        White on Sensor to GPIO on Pico'''
+
+LED_PIN = board.GP15
+'''LED is 2 Terminal Component with Clear/White LED
+    Wiring:
+        Black on Sensor to GND on Pico
+        Red on Sensor to GPIO on Pico
+'''
+
+sensor = digitalio.DigitalInOut(SENSOR_PIN)     # create a DigitalInOut object for the sensor pin
+sensor.direction = digitalio.Direction.INPUT    # set the pin direction to input (we read from it)
+sensor.pull = digitalio.Pull.UP                 # enable internal pull-up; sensor pulls LOW when beam breaks
+
+LED = digitalio.DigitalInOut(LED_PIN)         # create a DigitalInOut object for the (infrared) LED
+LED.direction = digitalio.Direction.OUTPUT    # set LED pin as output so we can turn it on/off
+
+
+# code-lcd-i2c
+# Author: Eric Z. Ayers <ericzundel@gmail.com>
+# Initialize the score variable
+score = 0
+
+# Initialize I2C bus.
+# The Raspberry Pi pico has a number of pin pairs that can be used for I2C.
+# One pin is SCL (clock) and the other is SDA (data).  See
+# a pin diagram at https://datasheets.raspberrypi.com/pico/Pico-R3-A4-Pinout.pdf
+i2c = busio.I2C(board.GP1, board.GP0)
+
+# Talk to the LCD at I2C address 0x27.
+lcd = LCD(I2CPCF8574Interface(i2c, 0x27), num_rows=2, num_cols=20)
+lcd.set_backlight(True)
+def debounce():
+    start_time = time.monotonic()
+    estimated_trigger_time = 10 #time in ms
+    current_time = time.monotonic()
+    print("start_time:", start_time, "current_time", current_time)
+    if current_time - start_time > estimated_trigger_time:
+        print("checking again")
+    # event counter for number of beam breaks detected
+
+
+piezo = analogio.AnalogIn(board.GP28)
+
+def get_voltage(pin):
+       return (pin.value * 3.3) / 65535
+
+voltage = 0
+
+pixel_pin = board.GP26
+num_pixels = 10
+
+pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=.2, auto_write=False)
+
+RED = (255, 0, 0)
+YELLOW = (255, 150, 0)
+GREEN = (0, 255, 0)
+CYAN = (0, 255, 255)
+BLUE = (0, 0, 255)
+PURPLE = (180, 0, 255)
+
+lcd.clear()
+# Start at the first line, fifth column (numbering from zero).
+lcd.set_cursor_pos(0, 1)
+lcd.print("Pinball Wizard")
+# Start at the first line, fifth column (numbering from zero).
+lcd.set_cursor_pos(1, 2)
+lcd.print("Score: ")
+
+# When printing a number with this library, you need to make sure
+# to convert it to a string, otherwise you'll get an error
+# about a non-iterable being passed to print()
+lcd.print(str(score))
+time.sleep(5)
+
+
+
+
+    
+
+'''
+    lcd.print("Update!")
+    # Make the screen scroll sideways
+for i in range (0,20):
+    lcd.shift_display(1)
+    time.sleep(.25)
+
+    # Bump the score for the next iteration of the loop
+score = score + 100
+'''
+
+
+
+while True:
+
+    LED.value = True
+    print(sensor.value)
+    
+    if sensor.value == False:
+        print("Beam is Broken!")
+        score = score +3
+        debounce()
+        pixels.fill(PURPLE)
+        pixels.show()
+        time.sleep(.25)
+        pixels.fill(BLUE)
+        pixels.show()
+        time.sleep(.25)
+        pixels.fill(PURPLE)
+        pixels.show()
+        time.sleep(.25)
+        pixels.fill(BLUE)
+        pixels.show()
+        time.sleep(.25)
+        pixels.fill(PURPLE)
+        pixels.show()
+        time.sleep(.25)
+        pixels.fill(BLUE)
+        pixels.show()
+        time.sleep(.25)
+        pixels.fill(PURPLE)
+        pixels.show()
+        time.sleep(.25)
+        pixels.fill(BLUE)
+        pixels.show()
+        time.sleep(.25)
+        
+    time.sleep(.01)
+    old_voltage = voltage
+    voltage = get_voltage(piezo)
+    time.sleep(0.01)  # adjust sampling speed
+    print("nothing is sensed")
+    pixels.fill(RED)
+    pixels.show()
+    
+    
+    if old_voltage - voltage > .1:
+        print("Hit Detected!")
+        print("Piezo Voltage:", voltage)
+        print("Old Voltage:", old_voltage)
+        print("RED")
+        score = score +1
+
+        pixels.fill(CYAN)
+        pixels.show()
+        time.sleep(.5)
+        pixels.fill(YELLOW)
+        pixels.show()
+        time.sleep(.5)
+        pixels.fill(CYAN)
+        pixels.show()
+        time.sleep(.5)
+        pixels.fill(YELLOW)
+        pixels.show()
+        time.sleep(.5)
+        
+    lcd.set_cursor_pos(1, 2)
+    lcd.print("Score: ")
+    lcd.print(str(score))  
+
+
+
+
+
+
